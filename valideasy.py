@@ -72,3 +72,7 @@ if passed:
         udapi.Document(file_treebank)
     except ValueError as udapi_err:
         print(udapi_err)
+        passed = False
+
+if passed:
+    print('***PASSED***')
