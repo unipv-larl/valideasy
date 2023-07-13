@@ -26,6 +26,7 @@ blanks = 1
 sent_open = False
 meta_open = False
 passed = True
+new_lines = []
 for l in lines:
     try:
         if l.startswith('#'):
@@ -47,9 +48,15 @@ for l in lines:
                 raise ConlluError(type='more_blank_lines', line=(lines.index(l) + 1))
             fields = l.split('\t')
             if len(fields) != 10:
-                raise ConlluError(type='columns', line=(lines.index(l) + 1))
+                print(lines.index(l) + 1, l)
+                nl = l + '\t_\t_\t_\t_\t_\t_\t_\t_'
+                nf = nl.split('\t')
+                if len(nf) != 10:
+                    raise ConlluError(type='columns', line=(lines.index(l) + 1))
+                else:
+                    l = nl
             else:
-                    if '-' not in fields[0]:
+                    if '-' not in fields[0] and '.' not in fields[0]:
                         try:
                             int(fields[0])
                         except IndexError:
@@ -61,13 +68,19 @@ for l in lines:
                         except IndexError:
                             pass
                         except ValueError:
-                            raise ConlluError(type='integer', line=(lines.index(l) + 1), column=7)
+                            if fields[6] != '_':
+                                raise ConlluError(type='integer', line=(lines.index(l) + 1), column=7)
     except ConlluError as conlluerror:
         print(conlluerror.message)
         passed = False
+    finally:
+        new_lines.append(l)
 
 
 if passed:
+    with open(sys.argv[2], 'w') as file:
+        file.write("\n".join(new_lines))
+    print('file saved')
     try:
         udapi.Document(file_treebank)
     except ValueError as udapi_err:
